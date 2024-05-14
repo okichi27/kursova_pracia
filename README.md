@@ -56,6 +56,7 @@ Let's consider the functionality of the program:
 
 ## expenses.db
 
+Database with previously added costs, in Ukrainian! This is in order to first try how it should look.
 База даних з раніше доданими витратами, українською мовою! Це для того аби спершу спробувати як воно мало б виглядати.
 
 
