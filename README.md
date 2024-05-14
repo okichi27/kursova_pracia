@@ -4,17 +4,17 @@
 У цій репозиторії зображено проект відстеження особистих витрат.
 
 Складається з 4 файлів:
-1.**budget.py**;
-2.**budget_angl_1.py**;
-3.**budget_angl_2.py**;
-4.**expenses.db**;
+1. **budget.py**;
+2. **budget_angl_1.py**;
+3. **budget_angl_2.py**;
+4. **expenses.db**.
     
 ## budget_angl.py
 
 The program is in English.
 There are 2 versions of the same program: 
-    **budget_angl_1.py** - old design;
-    **budget_angl_2.py** - new design.
+- **budget_angl_1.py** - old design;
+- **budget_angl_2.py** - new design.
 
 ### **Launch**
 1. Download git.
@@ -59,6 +59,5 @@ Let's consider the functionality of the program:
 База даних з раніше доданими витратами, українською мовою! Це для того аби спершу спробувати як воно мало б виглядати.
 
 
-#cringe #apathy #love
 
-your okichi :)
+**your okichi :)**
