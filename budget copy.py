@@ -5,6 +5,7 @@ from tkinter import scrolledtext
 import sqlite3
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkcalendar import DateEntry
 
 class ExpenseTrackerApp(tk.Tk):
     def __init__(self):
@@ -15,9 +16,6 @@ class ExpenseTrackerApp(tk.Tk):
 
         self.categories = ["groceries", "entertainment", "gifts", "travels", "clothes", 
                            "rent", "donation", "health", "savings", "other"]
-
-        self.months = ["January", "February", "March", "April", "May", "June",
-                       "July", "August", "September", "October", "November", "December"]
 
         self.create_database()
         self.create_widgets()
@@ -37,10 +35,10 @@ class ExpenseTrackerApp(tk.Tk):
     def add_expense(self):
         amount = self.amount_entry.get()
         category = self.category_combobox.get()
-        date = self.date_entry.get()
+        selected_date = self.date_entry.get_date()
         comment = self.comment_entry.get()
 
-        if not amount or not category or not date:
+        if not amount or not category or not selected_date:
             messagebox.showwarning("Incomplete Information", "Please fill all fields.")
             return
 
@@ -50,8 +48,13 @@ class ExpenseTrackerApp(tk.Tk):
             messagebox.showwarning("Invalid Amount", "Please enter a valid amount.")
             return
 
-        self.c.execute("INSERT INTO expenses (amount, category, date, comment) VALUES (?, ?, strftime('%Y-%m-%d', ?), ?)",
-                    (amount, category, date, comment))
+        year = selected_date.strftime('%Y')
+        month = selected_date.strftime('%m')
+        day = selected_date.strftime('%d')
+        date = f"{year}-{month}-{day}"
+
+        self.c.execute("INSERT INTO expenses (amount, category, date, comment) VALUES (?, ?, ?, ?)",
+                       (amount, category, date, comment))
         self.conn.commit()
         messagebox.showinfo("Expense Added", "Expense has been added successfully.")
         self.clear_entries()
@@ -60,7 +63,7 @@ class ExpenseTrackerApp(tk.Tk):
     def clear_entries(self):
         self.amount_entry.delete(0, tk.END)
         self.category_combobox.set("")
-        self.date_entry.delete(0, tk.END)
+        self.date_entry.set_date(None)
         self.comment_entry.delete(0, tk.END)
 
     def update_total_expenses(self):
@@ -73,35 +76,34 @@ class ExpenseTrackerApp(tk.Tk):
         self.c.execute("SELECT * FROM expenses ORDER BY date DESC")
         expenses = self.c.fetchall()
         for expense in expenses:
-            self.expenses_text.insert(tk.END, f"Date: {expense[3][8:10]}-{expense[3][5:7]}-{expense[3][0:4]}, Amount: {expense[1]}, Category: {expense[2]}, Comment: {expense[4]}\n")
+            self.expenses_text.insert(tk.END, f"Date: {expense[3]}, Amount: {expense[1]}, Category: {expense[2]}, Comment: {expense[4]}\n")
 
     def show_monthly_chart(self):
+        if self.monthly_chart_frame.winfo_ismapped():
+            # Видалення попереднього графіка
+            for widget in self.monthly_chart_frame.winfo_children():
+                widget.destroy()
+        else:
+            self.monthly_chart_frame.pack()
 
-            if self.monthly_chart_frame.winfo_ismapped():
-                # Видалення попереднього графіка
-                for widget in self.monthly_chart_frame.winfo_children():
-                    widget.destroy()
-            else:
-                self.monthly_chart_frame.pack()
-                
-            if self.monthly_chart_frame.winfo_ismapped():
-                self.monthly_chart_frame.pack_forget()
-            else:
-                self.monthly_chart_frame.pack()
-                self.c.execute("SELECT category, SUM(amount) FROM expenses WHERE strftime('%m', date) = (SELECT strftime('%m', date) FROM expenses ORDER BY date DESC LIMIT 1) GROUP BY category")
-                data = self.c.fetchall()
-                categories = [row[0] for row in data]
-                expenses = [row[1] for row in data]
+        if self.monthly_chart_frame.winfo_ismapped():
+            self.monthly_chart_frame.pack_forget()
+        else:
+            self.monthly_chart_frame.pack()
+            self.c.execute("SELECT category, SUM(amount) FROM expenses WHERE strftime('%m', date) = (SELECT strftime('%m', date) FROM expenses ORDER BY date DESC LIMIT 1) AND strftime('%Y', date) = (SELECT strftime('%Y', date) FROM expenses ORDER BY date DESC LIMIT 1) GROUP BY category")
+            data = self.c.fetchall()
+            categories = [row[0] for row in data]
+            expenses = [row[1] for row in data]
 
-                fig = Figure(figsize=(5, 4), dpi=100)
-                ax = fig.add_subplot(111)
-                ax.pie(expenses, labels=categories, autopct='%1.1f%%')
-                ax.set_title('Monthly Expenses by Category')
+            fig = Figure(figsize=(5, 4), dpi=100)
+            ax = fig.add_subplot(111)
+            ax.pie(expenses, labels=categories, autopct='%1.1f%%')
+            ax.set_title('Monthly Expenses by Category')
 
-                canvas = FigureCanvasTkAgg(fig, master=self.monthly_chart_frame)
-                canvas.draw()
-                canvas.get_tk_widget().pack()    
-                
+            canvas = FigureCanvasTkAgg(fig, master=self.monthly_chart_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack()
+
     def show_yearly_chart(self):
         if self.yearly_chart_frame.winfo_ismapped():
             self.yearly_chart_frame.pack_forget()
@@ -146,9 +148,10 @@ class ExpenseTrackerApp(tk.Tk):
         self.category_combobox = ttk.Combobox(expense_frame, values=self.categories)
         self.category_combobox.grid(row=1, column=1)
 
-        date_label = tk.Label(expense_frame, text="Date (DD-MM-YYYY):")
+        date_label = tk.Label(expense_frame, text="Date:")
         date_label.grid(row=2, column=0)
-        self.date_entry = tk.Entry(expense_frame)
+        self.date_entry = DateEntry(expense_frame, width=12, background='darkblue',
+                                    foreground='white', borderwidth=2, date_pattern='y/mm/dd')
         self.date_entry.grid(row=2, column=1)
 
         comment_label = tk.Label(expense_frame, text="Comment:")
@@ -171,7 +174,7 @@ class ExpenseTrackerApp(tk.Tk):
         show_expenses_button.pack(pady=5)
 
         self.expenses_text = scrolledtext.ScrolledText(expenses_frame, width=50, height=10)
-        self.expenses_text.pack()   
+        self.expenses_text.pack()
 
         # Monthly Chart Section
         self.monthly_chart_frame = tk.Frame(self)
