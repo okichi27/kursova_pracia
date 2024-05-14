@@ -11,11 +11,11 @@ class ExpenseTrackerApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("Expense Tracker")
-        self.geometry("800x600")
+        self.title("okichi`s-production")
+        self.geometry("900x900")
 
-        self.categories = ["groceries", "entertainment", "gifts", "travels", "clothes", 
-                           "rent", "donation", "health", "savings", "other"]
+        self.categories = ["продукти", "розваги", "житло", "подорожі", "одяг", 
+                            "донати <3", "здоров'я","подарунки", "заощадження", "інше"]
 
         self.create_database()
         self.create_widgets()
@@ -39,13 +39,13 @@ class ExpenseTrackerApp(tk.Tk):
         comment = self.comment_entry.get()
 
         if not amount or not category or not selected_date:
-            messagebox.showwarning("Incomplete Information", "Please fill all fields.")
+            messagebox.showwarning("Неповна інформація", "Будь ласка, заповніть всі поля.")
             return
 
         try:
             amount = float(amount)
         except ValueError:
-            messagebox.showwarning("Invalid Amount", "Please enter a valid amount.")
+            messagebox.showwarning("Неправильна сума", "Будь ласка, введіть ще раз.")
             return
 
         year = selected_date.strftime('%Y')
@@ -56,7 +56,7 @@ class ExpenseTrackerApp(tk.Tk):
         self.c.execute("INSERT INTO expenses (amount, category, date, comment) VALUES (?, ?, ?, ?)",
                        (amount, category, date, comment))
         self.conn.commit()
-        messagebox.showinfo("Expense Added", "Expense has been added successfully.")
+        messagebox.showinfo("Витрату додано!", "Вашу витрату успішно додано до історії.")
         self.clear_entries()
         self.update_total_expenses()
 
@@ -68,15 +68,15 @@ class ExpenseTrackerApp(tk.Tk):
 
     def update_total_expenses(self):
         self.c.execute("SELECT SUM(amount) FROM expenses")
-        total = self.c.fetchone()[0]
-        self.total_expenses_label.config(text=f"Total Expenses: {total}")
+        total = float(self.c.fetchone()[0])
+        self.total_expenses_label.config(text=f"Cума витрат за сесію: {total}")
 
     def show_expenses(self):
         self.expenses_text.delete(1.0, tk.END)
         self.c.execute("SELECT * FROM expenses ORDER BY date DESC")
         expenses = self.c.fetchall()
         for expense in expenses:
-            self.expenses_text.insert(tk.END, f"Date: {expense[3]}, Amount: {expense[1]}, Category: {expense[2]}, Comment: {expense[4]}\n")
+            self.expenses_text.insert(tk.END, f"[{expense[3][8:10]}-{expense[3][5:7]}-{expense[3][0:4]}]  Сума: {expense[1]} грн     Категорія - {expense[2]}     КОМЕНТАР: {expense[4]}\n")
 
     def show_monthly_chart(self):
         if self.monthly_chart_frame.winfo_ismapped():
@@ -98,7 +98,7 @@ class ExpenseTrackerApp(tk.Tk):
             fig = Figure(figsize=(5, 4), dpi=100)
             ax = fig.add_subplot(111)
             ax.pie(expenses, labels=categories, autopct='%1.1f%%')
-            ax.set_title('Monthly Expenses by Category')
+            ax.set_title('Графік витрат за останній місяць')
 
             canvas = FigureCanvasTkAgg(fig, master=self.monthly_chart_frame)
             canvas.draw()
@@ -122,68 +122,69 @@ class ExpenseTrackerApp(tk.Tk):
             fig = Figure(figsize=(5, 4), dpi=100)
             ax = fig.add_subplot(111)
             ax.plot(years, expenses)
-            ax.set_title('Yearly Expenses')
-            ax.set_xlabel('Year')
-            ax.set_ylabel('Total Expenses')
+            ax.set_title('Річні витрати')
+            ax.set_xlabel('Рік')
+            ax.set_ylabel('Загальні витрати')
 
             canvas = FigureCanvasTkAgg(fig, master=self.yearly_chart_frame)
             canvas.draw()
             canvas.get_tk_widget().pack()
 
     def create_widgets(self):
-        title_label = tk.Label(self, text="Expense Tracker", font=("Helvetica", 16))
+        title_label = tk.Label(self, text="БЮДЖЕТ ТРЕКЕР", fg='#00f', font=("Comic Sans MS",  26,"bold"), underline=6)
         title_label.pack(pady=10)
 
-        # Adding Expense Section
+        # Додавання витрат
         expense_frame = tk.Frame(self)
         expense_frame.pack(pady=10)
 
-        amount_label = tk.Label(expense_frame, text="Amount:")
-        amount_label.grid(row=0, column=0)
+        amount_label = tk.Label(expense_frame, text="сума: ")
+        amount_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
         self.amount_entry = tk.Entry(expense_frame)
-        self.amount_entry.grid(row=0, column=1)
+        self.amount_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
-        category_label = tk.Label(expense_frame, text="Category:")
-        category_label.grid(row=1, column=0)
+        category_label = tk.Label(expense_frame, text="категорія: ")
+        category_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
         self.category_combobox = ttk.Combobox(expense_frame, values=self.categories)
-        self.category_combobox.grid(row=1, column=1)
+        self.category_combobox.grid(row=1, column=1, padx=5, pady=5, sticky="w")
 
-        date_label = tk.Label(expense_frame, text="Date:")
-        date_label.grid(row=2, column=0)
+        date_label = tk.Label(expense_frame, text="дата: ")
+        date_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
         self.date_entry = DateEntry(expense_frame, width=12, background='darkblue',
                                     foreground='white', borderwidth=2, date_pattern='y/mm/dd')
-        self.date_entry.grid(row=2, column=1)
+        self.date_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
-        comment_label = tk.Label(expense_frame, text="Comment:")
-        comment_label.grid(row=3, column=0)
+        comment_label = tk.Label(expense_frame, text="коментар: ")
+        comment_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
         self.comment_entry = tk.Entry(expense_frame)
-        self.comment_entry.grid(row=3, column=1)
+        self.comment_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
-        add_button = tk.Button(expense_frame, text="Add Expense", command=self.add_expense)
+
+        add_button = tk.Button(expense_frame, text="Додати витрату", command=self.add_expense)
         add_button.grid(row=4, columnspan=2, pady=5)
 
-        # Total Expenses
-        self.total_expenses_label = tk.Label(self, text="Total Expenses: 0")
+        # Cума витрат за сесію
+        self.total_expenses_label = tk.Label(self, text="Cума витрат за сесію: 0", fg='darkblue', font=("Comic Sans MS", 12, "bold"),)
         self.total_expenses_label.pack()
 
-        # Show Expenses Section
+        # Показати витрати, поле
         expenses_frame = tk.Frame(self)
         expenses_frame.pack(pady=10)
 
-        show_expenses_button = tk.Button(expenses_frame, text="Show Expenses", command=self.show_expenses)
+        show_expenses_button = tk.Button(expenses_frame, text="Історія витрат", command=self.show_expenses)
         show_expenses_button.pack(pady=5)
 
-        self.expenses_text = scrolledtext.ScrolledText(expenses_frame, width=50, height=10)
+        self.expenses_text = scrolledtext.ScrolledText(expenses_frame, width=90, height=10)
         self.expenses_text.pack()
 
-        # Monthly Chart Section
+        # Місячні витрати
         self.monthly_chart_frame = tk.Frame(self)
-        monthly_chart_button = tk.Button(self, text="Monthly Chart", command=self.show_monthly_chart)
+        monthly_chart_button = tk.Button(self, text="Місячні витрати", command=self.show_monthly_chart)
         monthly_chart_button.pack(pady=5)
 
-        # Yearly Chart Section
+        # Річні витрати
         self.yearly_chart_frame = tk.Frame(self)
-        yearly_chart_button = tk.Button(self, text="Yearly Chart", command=self.show_yearly_chart)
+        yearly_chart_button = tk.Button(self, text="Річні витрати", command=self.show_yearly_chart)
         yearly_chart_button.pack(pady=5)
 
 if __name__ == "__main__":
