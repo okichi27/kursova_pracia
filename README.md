@@ -1,9 +1,9 @@
 # budget app
-**намагання написати хоча б щось схоже на курсову за 3 дні до здачі**
+**attempt to write at least something similar to the coursework 3 days before submission**
 
-У цій репозиторії зображено проект відстеження особистих витрат.
+This repository features a personal expense tracking project.
 
-Складається з 4 файлів:
+Consists of 4 files:
 1. **budget.py**;
 2. **budget_angl_1.py**;
 3. **budget_angl_2.py**;
